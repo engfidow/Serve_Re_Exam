@@ -8,7 +8,12 @@ const studentSchema = new mongoose.Schema({
   address: { type: String },
   dateOfBirth: { type: Date },
   emergencyName: { type: String },
-  emergencyPhone: { type: String }
+  emergencyPhone: { type: String },
+  studentId: { type: String, unique: true, required: true } // 👈 added
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student', studentSchema);
+
+
+
+

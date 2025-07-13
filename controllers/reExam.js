@@ -1,14 +1,17 @@
 const ReExam = require('../models/reExam');
+const Subject = require('../models/Subject');
 const { payByWaafiPay } = require('../paymentEvc');
 
 // Create
 exports.createReExam = async (req, res) => {
   try {
+    
     const { studentId, phone, subjects, reason } = req.body;
 
     if (!studentId || !phone || !subjects || !reason) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+    const totalFee = subjects.length * 3;
     const waafiResponse = await payByWaafiPay({
           phone: phone,
           amount: 0.01,
@@ -16,6 +19,7 @@ exports.createReExam = async (req, res) => {
           apiUserId: process.env.apiUserId,
           apiKey: process.env.apiKey,
         });
+        console.log(waafiResponse)
         if (waafiResponse.status) {
           const totalFee = subjects.length * 3;
 
@@ -24,11 +28,12 @@ exports.createReExam = async (req, res) => {
       phone,
       subjects,
       reason,
-      totalFee
+      totalFee,
+      status: 'approved'
     });
 
     const saved = await reExam.save();
-    res.status(201).json(saved);
+   res.status(201).json(saved);
         } else {
           // Handling payment failure
           return res.status(400).send({
@@ -39,6 +44,20 @@ exports.createReExam = async (req, res) => {
         }
 
     
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getAllRegisteredSubjects = async (req, res) => {
+  try {
+    const all = await ReExam.find({}, 'subjects');
+    const allSubjects = all.flatMap(item => item.subjects);
+    const unique = [...new Set(allSubjects)];
+
+    // Optionally fetch full Subject info
+    const subjects = await Subject.find({ name: { $in: unique } });
+    res.status(200).json(subjects);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -105,5 +124,49 @@ exports.getReExamsByStudentId = async (req, res) => {
     res.status(200).json(reExams);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+
+const getDateRange = (range) => {
+  const now = new Date();
+  let start;
+
+  switch (range) {
+    case 'week':
+      start = new Date(now.setDate(now.getDate() - 7));
+      break;
+    case 'month':
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+    case 'year':
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    default:
+      start = null;
+  }
+
+  return start;
+};
+
+exports.getReExamReport = async (req, res) => {
+  try {
+    const { range } = req.params;
+    const startDate = getDateRange(range);
+
+    const query = startDate ? { createdAt: { $gte: startDate } } : {};
+
+    const reExams = await ReExam.find(query);
+
+    const totalCount = reExams.length;
+    const totalRevenue = reExams.reduce((sum, exam) => sum + (exam.totalFee || 0), 0);
+
+    res.status(200).json({
+      range,
+      totalCount,
+      totalRevenue,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

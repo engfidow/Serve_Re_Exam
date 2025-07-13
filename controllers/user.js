@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose'); // Add this line
 
 const nodemailer = require('nodemailer');
+const Student = require('../models/Student');
 require('dotenv').config();
 const verificationCodes = {}; // In-memory store for verification codes
 // Environment variables for JWT
@@ -51,6 +52,36 @@ exports.createUser = async (req, res) => {
     }
 };
 
+exports.studentloginUser = async (req, res) => {
+  try {
+    const { studentId, password } = req.body;
+
+    // Find student by studentId
+    const studentuser = await Student.findOne({ studentId });
+    if (!studentuser) {
+      return res.status(401).json({ message: 'Student not found' });
+    }
+
+    // Find linked user
+    const user = await User.findById(studentuser.user);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Compare plain-text password
+    if (user.password !== password) {
+      return res.status(401).json({ message: 'Incorrect password' });
+    }
+
+    // Generate and return token
+    const token = generateToken(user._id);
+    res.status(200).json({ user, token });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 
 

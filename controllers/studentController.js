@@ -1,7 +1,9 @@
 const Student = require('../models/Student');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const Faculty = require("../models/Faculty");
 
+// Create student
 // Create student
 exports.createStudent = async (req, res) => {
   try {
@@ -16,7 +18,7 @@ exports.createStudent = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ error: 'Email already exists' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+
 
     const user = new User({
       name,
@@ -30,6 +32,21 @@ exports.createStudent = async (req, res) => {
 
     const savedUser = await user.save();
 
+    // Fetch faculty name
+    const facultyDoc = await Faculty.findById(faculty);
+    if (!facultyDoc) return res.status(404).json({ error: 'Faculty not found' });
+
+    const facultyPrefix = facultyDoc.name.slice(0, 2).toUpperCase();
+    const currentYear = new Date().getFullYear().toString().slice(-2); // "25"
+
+    // Count existing students in this faculty
+    const studentCount = await Student.countDocuments({ faculty });
+
+    const studentNumber = studentCount + 1;
+    const paddedNumber = studentNumber.toString().padStart(3, '0'); // e.g., 001
+
+    const studentId = `${facultyPrefix}${currentYear}${paddedNumber}`; // e.g., IT25001
+
     const student = new Student({
       user: savedUser._id,
       phone,
@@ -38,7 +55,8 @@ exports.createStudent = async (req, res) => {
       address,
       dateOfBirth,
       emergencyName,
-      emergencyPhone
+      emergencyPhone,
+      studentId
     });
 
     const savedStudent = await student.save();
@@ -48,6 +66,7 @@ exports.createStudent = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 // Get all students

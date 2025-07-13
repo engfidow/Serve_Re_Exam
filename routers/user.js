@@ -4,6 +4,7 @@ const userController = require('../controllers/user');
 
 router.post('/users/signup', userController.upload, userController.createUser);
 router.post('/users/login', userController.loginUser);
+router.post('/users/studentlogin', userController.studentloginUser);
 
 router.put('/users/:id', userController.upload, userController.updateUser);
 router.post('/users/update', userController.upload, userController.updateUserPassword);

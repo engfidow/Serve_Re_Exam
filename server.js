@@ -8,6 +8,8 @@ const subjectRoutes = require("./routers/subjectRoutes");
 
 const studentRoutes = require('./routers/studentRoutes');
 const reExamRoutes = require('./routers/reExam.js');
+const schedulerouter = require('./routers/reExamScheduleRoutes.js');
+const dashboardRoutre = require('./routers/dashboard.js');
 
 require('dotenv').config();
 const express = require('express');
@@ -39,6 +41,8 @@ app.use("/api/subjects", subjectRoutes);
 app.use('/api/students', studentRoutes);
 
 app.use('/api/reexams', reExamRoutes);
+app.use('/api/schedules', schedulerouter);
+app.use('/api/dashboard', dashboardRoutre);
 
 
 
