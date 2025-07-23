@@ -11,6 +11,9 @@ const reExamRoutes = require('./routers/reExam.js');
 const schedulerouter = require('./routers/reExamScheduleRoutes.js');
 const dashboardRoutre = require('./routers/dashboard.js');
 
+require('./scheduler/emailScheduler'); // add this after your express setup
+
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');

@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
     usertype: {
         type: String,
         required: true,
-        default : "user",
+        default : "user", //studedn , admin
     },
     gender: { type: String, required: true },
     status: { type: String, required: true, default : "inactive",},

@@ -5,49 +5,59 @@ const { payByWaafiPay } = require('../paymentEvc');
 // Create
 exports.createReExam = async (req, res) => {
   try {
-    
-    const { studentId, phone, subjects, reason } = req.body;
+    const { studentId, phone, subjects, reason, semester } = req.body;
 
     if (!studentId || !phone || !subjects || !reason) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ message: 'Missing required fields' });
     }
-    const totalFee = subjects.length * 3;
-    const waafiResponse = await payByWaafiPay({
-          phone: phone,
-          amount: 0.01,
-          merchantUid: process.env.merchantUid,
-          apiUserId: process.env.apiUserId,
-          apiKey: process.env.apiKey,
-        });
-        console.log(waafiResponse)
-        if (waafiResponse.status) {
-          const totalFee = subjects.length * 3;
 
-    const reExam = new ReExam({
-      studentId,
-      phone,
-      subjects,
-      reason,
-      totalFee,
-      status: 'approved'
+    const currentMonth = new Date().getMonth(); // 0-indexed (0 = January)
+    const isMarch = currentMonth === 2;
+    const isAugust = currentMonth === 7;
+
+    if (!isMarch && !isAugust) {
+      return res.status(400).json({ message: 'Re-exam registration is only allowed in March and August.' });
+    }
+
+    if (isMarch && subjects.length > 4) {
+      return res.status(400).json({ message: 'In March, only up to 4 subjects can be registered.' });
+    }
+
+    const totalFee = subjects.length * 3;
+
+    const waafiResponse = await payByWaafiPay({
+      phone: phone,
+      amount: 0.01, // Use `totalFee` in production
+      merchantUid: process.env.merchantUid,
+      apiUserId: process.env.apiUserId,
+      apiKey: process.env.apiKey,
     });
 
-    const saved = await reExam.save();
-   res.status(201).json(saved);
-        } else {
-          // Handling payment failure
-          return res.status(400).send({
-            status: "failed",
-            message: `${waafiResponse.error}` ?? "Payment Failed Try Again",
-          });
-         
-        }
+    if (waafiResponse.status) {
+      const reExam = new ReExam({
+        studentId,
+        phone,
+        subjects,
+        reason,
+        totalFee,
+        semester,
+        status: 'approved'
+      });
 
-    
+      const saved = await reExam.save();
+      return res.status(201).json(saved);
+    } else {
+      return res.status(400).json({
+        status: "failed",
+        message: waafiResponse.error || "Payment Failed. Try Again.",
+      });
+    }
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.getAllRegisteredSubjects = async (req, res) => {
   try {

@@ -14,6 +14,10 @@ const reExamSchema = new mongoose.Schema({
     type: [String],
     required: true
   },
+   semester: {
+    type: String,
+
+  },
   reason: {
     type: String,
     enum: ['medical', 'family', 'attendence', 'payment', 'failed_exam'],

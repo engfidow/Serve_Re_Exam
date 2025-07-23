@@ -37,4 +37,28 @@ router.get('/top-subjects', async (req, res) => {
   }
 });
 
+// GET /api/dashboard/gender-count
+router.get('/gender-count', async (req, res) => {
+  try {
+    const students = await Student.find().populate('user', 'gender');
+
+    let totalMale = 0;
+    let totalFemale = 0;
+
+    students.forEach((student) => {
+      const gender = student.user?.gender?.toLowerCase();
+      if (gender === 'male') totalMale++;
+      else if (gender === 'female') totalFemale++;
+    });
+
+    res.json({
+      totalMale,
+      totalFemale
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 module.exports = router;
