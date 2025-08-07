@@ -10,17 +10,21 @@ const reExamSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  subjects: {
-    type: [String],
-    required: true
-  },
-   semester: {
+  subjects: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subject', // 👈 Reference to Subject collection
+      required: true
+    }
+  ],
+  semester: {
     type: String,
-
   },
+ 
   reason: {
     type: String,
-    enum: ['medical', 'family', 'attendence', 'payment', 'failed_exam'],
+    enum: ['medical', 'choose', 'family', 'attendence', 'payment', 'failed_exam'],
+    default: 'choose',
     required: true
   },
   totalFee: {

@@ -10,6 +10,9 @@ const studentRoutes = require('./routers/studentRoutes');
 const reExamRoutes = require('./routers/reExam.js');
 const schedulerouter = require('./routers/reExamScheduleRoutes.js');
 const dashboardRoutre = require('./routers/dashboard.js');
+const examResultRoutes = require('./routers/examResultRoutes');
+
+
 
 require('./scheduler/emailScheduler'); // add this after your express setup
 
@@ -47,9 +50,10 @@ app.use('/api/reexams', reExamRoutes);
 app.use('/api/schedules', schedulerouter);
 app.use('/api/dashboard', dashboardRoutre);
 
-
+app.use('/api/exam-results', examResultRoutes);
 
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port http://localhost:${PORT}`+ ` 🔥`);
+    console.log(`Server is running on port http://localhost:${PORT}`+ `🔥`);
 });

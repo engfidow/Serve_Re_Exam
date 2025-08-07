@@ -25,33 +25,33 @@ exports.createReExam = async (req, res) => {
 
     const totalFee = subjects.length * 3;
 
-    const waafiResponse = await payByWaafiPay({
-      phone: phone,
-      amount: 0.01, // Use `totalFee` in production
-      merchantUid: process.env.merchantUid,
-      apiUserId: process.env.apiUserId,
-      apiKey: process.env.apiKey,
-    });
+    // const waafiResponse = await payByWaafiPay({
+    //   phone: phone,
+    //   amount: 0.01, // Use `totalFee` in production
+    //   merchantUid: process.env.merchantUid,
+    //   apiUserId: process.env.apiUserId,
+    //   apiKey: process.env.apiKey,
+    // });
 
-    if (waafiResponse.status) {
+    // if (waafiResponse.status) {
       const reExam = new ReExam({
         studentId,
         phone,
         subjects,
         reason,
         totalFee,
-        semester,
+        semester: `Semester-${semester}-${new Date().getFullYear()}`, // 👈 Format the semester,
         status: 'approved'
       });
 
       const saved = await reExam.save();
       return res.status(201).json(saved);
-    } else {
-      return res.status(400).json({
-        status: "failed",
-        message: waafiResponse.error || "Payment Failed. Try Again.",
-      });
-    }
+    // } else {
+    //   return res.status(400).json({
+    //     status: "failed",
+    //     message: waafiResponse.error || "Payment Failed. Try Again.",
+    //   });
+    // }
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -80,12 +80,15 @@ exports.getAllReExams = async (req, res) => {
       .populate({
         path: 'studentId',
         populate: { path: 'user' }
-      });
+      })
+      .populate('subjects'); // ✅ populate subjects so name is available
     res.status(200).json(reExams);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 // Get One
 exports.getReExamById = async (req, res) => {
@@ -129,7 +132,9 @@ exports.getReExamsByStudentId = async (req, res) => {
       .populate({
         path: 'studentId',
         populate: { path: 'user' }
-      });
+      }).populate('subjects', 'name');
+
+
 
     res.status(200).json(reExams);
   } catch (error) {
