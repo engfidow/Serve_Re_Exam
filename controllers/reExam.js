@@ -7,7 +7,7 @@ exports.createReExam = async (req, res) => {
   try {
     const { studentId, phone, subjects, reason, semester } = req.body;
 
-    if (!studentId || !phone || !subjects || !reason) {
+    if (!studentId || !phone || !subjects ) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -25,15 +25,15 @@ exports.createReExam = async (req, res) => {
 
     const totalFee = subjects.length * 3;
 
-    // const waafiResponse = await payByWaafiPay({
-    //   phone: phone,
-    //   amount: 0.01, // Use `totalFee` in production
-    //   merchantUid: process.env.merchantUid,
-    //   apiUserId: process.env.apiUserId,
-    //   apiKey: process.env.apiKey,
-    // });
+    const waafiResponse = await payByWaafiPay({
+      phone: phone,
+      amount: 0.01, // Use `totalFee` in production
+      merchantUid: process.env.merchantUid,
+      apiUserId: process.env.apiUserId,
+      apiKey: process.env.apiKey,
+    });
 
-    // if (waafiResponse.status) {
+    if (waafiResponse.status) {
       const reExam = new ReExam({
         studentId,
         phone,
@@ -46,12 +46,12 @@ exports.createReExam = async (req, res) => {
 
       const saved = await reExam.save();
       return res.status(201).json(saved);
-    // } else {
-    //   return res.status(400).json({
-    //     status: "failed",
-    //     message: waafiResponse.error || "Payment Failed. Try Again.",
-    //   });
-    // }
+    } else {
+      return res.status(400).json({
+        status: "failed",
+        message: waafiResponse.error || "Payment Failed. Try Again.",
+      });
+    }
 
   } catch (err) {
     res.status(500).json({ error: err.message });
